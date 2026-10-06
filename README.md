@@ -78,17 +78,17 @@ flowchart TD
 
 | Stage | Object | Definition |
 |---|---|---|
-| 1. Graph | Directed graph with $n$ nodes | Edge $j \to i$ means page $j$ links to page $i$ |
-| 2. Adjacency | $A \in \{0,1\}^{n \times n}$ | $A_{ij} = 1$ if $j \to i$ (so column $j$ lists the outlinks of $j$) |
-| 3. Transition | $M$ | $M_{ij} = A_{ij} / \text{outdeg}(j)$, so every column sums to 1. Dangling nodes (no outlinks) get a uniform column $1/n$ |
-| 4. Google matrix | $G$ | $G = \alpha M + (1-\alpha)\frac{1}{n}\mathbf{1}\mathbf{1}^T$, with damping $\alpha = 0.85$ |
-| 5a. Eigenvector | $G r = r$ | $r$ is the eigenvector for eigenvalue $\lambda = 1$, normalized so $\sum r_i = 1$ |
-| 5b. Power iteration | $r_{k+1} = G r_k$ | Start from $r_0 = \frac{1}{n}\mathbf{1}$; stop when $\lVert r_{k+1} - r_k \rVert_1 < \varepsilon$ |
+| 1. Graph | Directed graph, n nodes | Edge `j → i` means page j links to page i |
+| 2. Adjacency | `A` (n × n, entries 0 or 1) | `A[i][j] = 1` if `j → i`, so column j lists the outlinks of j |
+| 3. Transition | `M` | `M[i][j] = A[i][j] / outdeg(j)`, so every column sums to 1. Dangling nodes (no outlinks) get a uniform column `1/n` |
+| 4. Google matrix | `G` | `G = α·M + (1 − α)/n · J`, where `J` is the all-ones matrix and damping `α = 0.85` |
+| 5a. Eigenvector | `G r = r` | `r` is the eigenvector for eigenvalue 1, normalized so `Σ r[i] = 1` |
+| 5b. Power iteration | `r_next = G · r` | Start from `r = (1/n, …, 1/n)`; stop when `‖r_next − r‖₁ < ε` |
 | 6. Verification | Consistency checks | See below |
 
 ## Verification checks
 
-1. $\sum_i r_i = 1$ and all $r_i > 0$
-2. Residual $\lVert G r - r \rVert_1 \approx 0$
+1. `Σ r[i] = 1` and every `r[i] > 0`
+2. Residual `‖G r − r‖₁ ≈ 0`
 3. Eigenvector result and power-iteration result agree within tolerance
 4. Ranking matches `networkx.pagerank(G, alpha=0.85)`
