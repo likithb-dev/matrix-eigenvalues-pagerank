@@ -60,23 +60,35 @@ PR^{(k+1)} = GPR^{(k)}
 
 The iteration continues until the difference between successive PageRank vectors falls below a specified tolerance.
 
-## Project Pipeline
+## Pipeline
 
-```text
-Directed Graph
-      ↓
-Adjacency Matrix A
-      ↓
-Transition Matrix M
-      ↓
-Google Matrix G
-      ↓
- ┌───────────────┐
- │               │
-Eigenvector   Power Iteration
- │               │
- └───────┬───────┘
-         ↓
-     PageRank
-         ↓
-   Verification
+```mermaid
+flowchart TD
+    A["Directed graph<br/>(web pages and links)"] --> B["Adjacency matrix A"]
+    B --> C["Transition matrix M<br/>(column-stochastic)"]
+    C --> D["Google matrix G<br/>(damping + teleportation)"]
+    D --> E["Method 1: Eigenvector<br/>solve G r = r"]
+    D --> F["Method 2: Power iteration<br/>r ← G r until convergence"]
+    E --> G["PageRank vector r"]
+    F --> G
+    G --> H["Verification<br/>(cross-check both methods)"]
+```
+
+## What each stage does
+
+| Stage | Object | Definition |
+|---|---|---|
+| 1. Graph | Directed graph with $n$ nodes | Edge $j \to i$ means page $j$ links to page $i$ |
+| 2. Adjacency | $A \in \{0,1\}^{n \times n}$ | $A_{ij} = 1$ if $j \to i$ (so column $j$ lists the outlinks of $j$) |
+| 3. Transition | $M$ | $M_{ij} = A_{ij} / \text{outdeg}(j)$, so every column sums to 1. Dangling nodes (no outlinks) get a uniform column $1/n$ |
+| 4. Google matrix | $G$ | $G = \alpha M + (1-\alpha)\frac{1}{n}\mathbf{1}\mathbf{1}^T$, with damping $\alpha = 0.85$ |
+| 5a. Eigenvector | $G r = r$ | $r$ is the eigenvector for eigenvalue $\lambda = 1$, normalized so $\sum r_i = 1$ |
+| 5b. Power iteration | $r_{k+1} = G r_k$ | Start from $r_0 = \frac{1}{n}\mathbf{1}$; stop when $\lVert r_{k+1} - r_k \rVert_1 < \varepsilon$ |
+| 6. Verification | Consistency checks | See below |
+
+## Verification checks
+
+1. $\sum_i r_i = 1$ and all $r_i > 0$
+2. Residual $\lVert G r - r \rVert_1 \approx 0$
+3. Eigenvector result and power-iteration result agree within tolerance
+4. Ranking matches `networkx.pagerank(G, alpha=0.85)`
